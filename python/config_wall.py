@@ -228,6 +228,7 @@ def ensureScrapeJob(prometheus_org, job_name, static_targets):
 
 
 def configYaml(cube, ccvm, scvm=None):
+    scvm = scvm or []
     prometheus_yml_path = '/usr/share/ablestack/ablestack-wall/prometheus/prometheus.yml'
 
     with open(prometheus_yml_path) as f:
@@ -361,7 +362,7 @@ def configDS(scvm=None):  # 기본값 None 추가
     ds_update_query1 = "UPDATE data_source SET url = \'http://" + \
         "localhost:3001' WHERE name = 'Wall'"
 
-    if os_type == "ablestack-hci" and scvm is not None:
+    if os_type == "ablestack-hci" and scvm:
         ds_update_query2 = "UPDATE data_source SET url = \'http://" + \
             gluePrometheusConfig(scvm)[0] + "' WHERE name = 'Glue'"
 
@@ -381,7 +382,7 @@ def configDS(scvm=None):  # 기본값 None 추가
 
     cur = conn.cursor()
     cur.execute(ds_update_query1)
-    if os_type == "ablestack-hci" and scvm is not None:
+    if os_type == "ablestack-hci" and scvm:
         cur.execute(ds_update_query2)
     cur.execute(ds_update_query3)
     cur.execute(ds_update_query4)
@@ -565,7 +566,7 @@ def ensureScvmProcessConfig(scvm):
 
 def configLokiPromtail(ccvm, cube, scvm=None):
     try:
-        if os_type == "ablestack-hci":
+        if os_type == "ablestack-hci" and scvm:
             result = json.loads(sh.python3("/usr/share/ablestack/ablestack-wall/python/config_loki.py", "config", "--ccvm", ccvm, "--cube", cube, "--scvm", scvm))
         else:
             result = json.loads(sh.python3("/usr/share/ablestack/ablestack-wall/python/config_loki.py", "config", "--ccvm", ccvm, "--cube", cube))
@@ -614,7 +615,7 @@ def main():
                 configSkydiveLink(args.ccvm)
                 configMoldUserDashboard()
 
-                json.loads(sh.python3("/usr/share/ablestack/ablestack-wall/python/config_loki.py","config", "--ccvm", args.ccvm, "--cube", args.cube, "--scvm", args.scvm))
+                configLokiPromtail(args.ccvm, args.cube, args.scvm)
 
                 ret = createReturn(code=200, val="success wall configuration")
                 print(json.dumps(json.loads(ret), indent=4))

@@ -87,6 +87,7 @@ import subprocess
 import os
 
 def LokiPromtailConfig(ccvm, cube, scvm=None):
+    scvm = scvm or []
     promtail_yml_path = '/usr/share/ablestack/ablestack-wall/promtail/'
     # 오류 발생할 경우, 3번 재시도 합니다.
     tries = 3
@@ -238,6 +239,7 @@ def RestartLoki(ccvm):
 # 주요 기능 : 입력 받은 ccvm, cube, scvm ip의 주소로 promtail service를 재시작 합니다.
 
 def RestartLokiPromtail(ccvm, cube, scvm=None):
+    scvm = scvm or []
     for i in range(len(ccvm)):
         stringOj = ''.join(ccvmServiceConfig(ccvm)[i])
         os.system("ssh -o StrictHostKeyChecking=no root@" + stringOj + " 'systemctl restart loki.service'")
